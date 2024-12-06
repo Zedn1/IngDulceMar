@@ -13,11 +13,11 @@
     <!-- Barra de navegación -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
         <div class="container">
-            <a class="navbar-brand" href="{% url 'usuarios:login' %}">DulceMar - Pagina Administrativa</a>
+            <a class="navbar-brand" href="{% url 'usuarios:menu' %}">DulceMar - Pagina Administrativa</a>
             <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarContenido" aria-controls="navbarContenido" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
-
+            
             <div class="collapse navbar-collapse" id="navbarContenido">
                 <ul class="navbar-nav mr-auto">
                     
@@ -25,6 +25,9 @@
                 </ul>
                 <ul class="navbar-nav">
                     {% if user.is_authenticated %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'gestion:ingresos_y_gastos' %}">Ingresos y Gastos</a>
+                        </li>
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                 {{ user.username }}

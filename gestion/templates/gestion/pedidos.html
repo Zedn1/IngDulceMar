@@ -1,0 +1,13 @@
+<h1>Pedidos</h1>
+<h2>Pendientes</h2>
+<ul>
+    {% for pedido in pedidos_pendientes %}
+        <li>{{ pedido }} - {{ pedido.estado }}</li>
+    {% endfor %}
+</ul>
+<h2>Realizados</h2>
+<ul>
+    {% for pedido in pedidos_realizados %}
+        <li>{{ pedido }} - {{ pedido.estado }}</li>
+    {% endfor %}
+</ul>

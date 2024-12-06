@@ -1,11 +1,52 @@
 {% extends 'base.html' %}
 
-{% block title %}Libros{% endblock %}
+{% block title %}Ingresos y Gastos{% endblock %}
 
 {% block content %}
-<h1>Ingresos y Gastos</h1>
-<p>Total ingresos: ${{ ingresos }}</p>
-<p>Total gastos: ${{ gastos }}</p>
-<p>Balance: ${{ balance }}</p>
+<div class="dashboard">
+    <h1>Ingresos y Gastos</h1>
+    <div class="stats">
+        <p>Total ingresos: <span class="ingresos_number">${{ ingresos_totales }}</span></p>
+        <p>Total gastos: <span class="gastos_number">${{ gastos_totales }}</span></p>
+        <p>Balance: 
+            <span class="balance_number {{ balance_clase }}">
+                ${{ balance }}
+            </span>
+        </p>
+    </div>
 
+    <div class="actions">
+        <button class="btn-view">Ocultar Detalles</button>
+    </div>
+
+    <div class="details" id="details-section">
+        <h3>Detalles de Ingresos y Gastos</h3>
+        
+        <!-- Lista de Ingresos -->
+        <h4>Ingresos</h4>
+        <ul class="ingresos-list">
+            {% for ingreso in ingresos_list %}
+            <li>
+                Pedido #{{ ingreso.pedido.id }}  
+                <strong>${{ ingreso.monto }}</strong> 
+                ({{ ingreso.fecha|date:"d M Y H:i" }})
+            </li>
+            {% endfor %}
+        </ul>
+        
+        <!-- Lista de Gastos -->
+        <h4>Gastos</h4>
+        <ul class="gastos-list">
+            {% for gasto in gastos_list %}
+            <li>
+                {{ gasto.concepto }} ({{ gasto.tipo }})  
+                <strong>${{ gasto.monto }}</strong> 
+                ({{ gasto.fecha|date:"d M Y H:i" }})
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+    
+</div>
 {% endblock %}
+

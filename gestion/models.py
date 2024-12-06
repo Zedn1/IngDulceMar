@@ -76,7 +76,7 @@ class Pedido(models.Model):
         self.save()
 
     def __str__(self):
-        return f"Pedido #{self.id} - {self.estado}"
+        return f"Pedido #{self.id}"
 
 class PedidoProveedor(models.Model):
     ESTADO_PEDIDO = [

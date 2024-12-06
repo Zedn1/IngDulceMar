@@ -4,21 +4,25 @@ from .models import Gasto, Ingreso, Pedido, PedidoProveedor
 
 # Create your views here.
 def ingresos_y_gastos(request):
-    ingresos = Ingreso.objects.aggregate(total_ingresos=Sum('monto'))['total_ingresos'] or 0
-    gastos = Gasto.objects.aggregate(total_gastos=Sum('monto'))['total_gastos'] or 0
-    balance = ingresos - gastos
+    ingresos = Ingreso.objects.all().order_by('-fecha')
+    gastos = Gasto.objects.all().order_by('-fecha')
+    ingresos_totales = Ingreso.objects.aggregate(total_ingresos=Sum('monto'))['total_ingresos'] or 0
+    gastos_totales = Gasto.objects.aggregate(total_gastos=Sum('monto'))['total_gastos'] or 0
+    balance = ingresos_totales - gastos_totales
+    balance_clase = "positivo" if balance >= 0 else "negativo"
     return render(request, 'gestion/ingresosYGastos.html', {
-        'ingresos': ingresos,
-        'gastos': gastos,
+        'ingresos_totales': ingresos_totales,
+        'gastos_totales': gastos_totales,
         'balance': balance,
+        'balance_clase': balance_clase,
+        'ingresos_list': ingresos,
+        'gastos_list': gastos,
     })
 
 def pedidos(request):
-    pedidos_pendientes = Pedido.objects.filter(estado='Pendiente')
-    pedidos_realizados = Pedido.objects.filter(estado='Completado')
+    pedidos = Pedido.objects.all().order_by('estado')
     return render(request, 'gestion/pedidos.html', {
-        'pedidos_pendientes': pedidos_pendientes,
-        'pedidos_realizados': pedidos_realizados,
+        'pedidos': pedidos,
     })
 
 def pedidos_proveedores(request):

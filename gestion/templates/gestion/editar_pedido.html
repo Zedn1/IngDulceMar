@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+
+{% block title %}Editar Pedido{% endblock %}
+
+{% block content %}
+<h1>Editar Pedido #{{ pedido.id }}</h1>
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+
+    <h3>Productos en el Pedido</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Producto</th>
+                <th>Cantidad</th>
+                <th>Eliminar</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for detalle in pedido.detallepedido_set.all %}
+            <tr>
+                <td>{{ detalle.producto.nombre }}</td>
+                <td>
+                    <input type="number" name="cantidad_{{ detalle.id }}" value="{{ detalle.cantidad }}" min="1">
+                </td>
+                <td>
+                    <a href="{% url 'gestion:eliminar_producto' detalle.id %}">Eliminar</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <h3>Agregar nuevos productos</h3>
+    <div>
+        <label for="producto">Selecciona un producto:</label>
+        <select name="producto" id="producto">
+            {% for producto in productos %}
+            <option value="{{ producto.id }}">{{ producto.nombre }}</option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <div>
+        <label for="cantidad">Cantidad:</label>
+        <input type="number" name="cantidad" id="cantidad" value="1" min="1">
+    </div>
+
+    <button type="submit">Guardar cambios</button>
+    <a href="{% url 'gestion:pedidos' %}">Cancelar</a>
+</form>
+{% endblock %}

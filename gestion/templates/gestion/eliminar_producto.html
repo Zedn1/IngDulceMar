@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+
+{% block title %}Eliminar Producto{% endblock %}
+
+{% block content %}
+<h1>Eliminar Producto</h1>
+
+<p>Estás a punto de eliminar el producto <strong>{{ detalle.producto.nombre }}</strong> del pedido #{{ detalle.pedido.id }}.</p>
+
+<p>¿Estás seguro de que deseas eliminar este producto?</p>
+
+<form method="post">
+    {% csrf_token %}
+    <button type="submit">Sí, eliminar</button>
+    <a href="{% url 'gestion:editar_pedido' id=detalle.pedido.id %}">Cancelar</a>
+</form>
+
+{% endblock %}

@@ -97,7 +97,10 @@ class PedidoProveedor(models.Model):
 class DetallePedido(models.Model):
     pedido = models.ForeignKey(Pedido, on_delete=models.CASCADE)
     producto = models.ForeignKey(Producto, on_delete=models.CASCADE)
-    cantidad = models.PositiveIntegerField()
+    cantidad = models.PositiveIntegerField(default=1)
+    
+    def __str__(self):
+        return f"{self.cantidad} x {self.producto.nombre} en Pedido #{self.pedido.id}"
 
     def save(self, *args, **kwargs):
         if self.cantidad > self.producto.cantidad_en_stock:

@@ -4,12 +4,14 @@
 
 {% block content %}
 <h1>Pedidos</h1>
+<a href="{% url 'gestion:crear_pedido' %}">Crear nuevo pedido</a>
 <table>
     <tr>
-      <th>Pedido</th>
-      <th>Cliente</th>
-      <th>Precio</th>
-      <th>Estado</th>
+        <th>Pedido</th>
+        <th>Cliente</th>
+        <th>Precio</th>
+        <th>Estado</th>
+        <th>Acciones</th>
     </tr>
     {% for pedido in pedidos %}
         <tr>
@@ -17,7 +19,11 @@
             <td>{{ pedido.cliente }}</td>
             <td>{{ pedido.precio_total }}</td>
             <td>{{ pedido.estado }}</td>
+            <td>
+                <a href="{% url 'gestion:editar_pedido' pedido.id %}">Editar</a> |
+                <a href="{% url 'gestion:eliminar_pedido' pedido.id %}" onclick="return confirm('¿Estás seguro de que deseas eliminar este pedido?');">Eliminar</a>
+            </td>
         </tr>
     {% endfor %}
-  </table>
+</table>
 {% endblock %}

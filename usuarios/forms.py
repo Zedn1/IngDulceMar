@@ -1,10 +1,18 @@
 from django import forms
 from django.contrib.auth.models import User
+from django.contrib.auth.password_validation import validate_password
 from .models import Perfil
 
 class RegistroForm(forms.ModelForm):
-    password = forms.CharField(widget=forms.PasswordInput, label='Contraseña')
-    password_confirmacion = forms.CharField(widget=forms.PasswordInput, label='Confirmar Contraseña')
+    password = forms.CharField(
+        widget=forms.PasswordInput,
+        label='Contraseña',
+        help_text="Debe tener al menos 8 caracteres, incluir números, mayúsculas, minúsculas y símbolos.",
+    )
+    password_confirmacion = forms.CharField(
+        widget=forms.PasswordInput,
+        label='Confirmar Contraseña',
+    )
     rol = forms.ChoiceField(choices=Perfil.ROLES, label='Rol')
 
     class Meta:
@@ -18,6 +26,11 @@ class RegistroForm(forms.ModelForm):
         self.fields['password'].widget.attrs.update({'class': 'form-control'})
         self.fields['password_confirmacion'].widget.attrs.update({'class': 'form-control'})
         self.fields['rol'].widget.attrs.update({'class': 'form-control'})
+
+    def clean_password(self):
+        password = self.cleaned_data.get('password')
+        validate_password(password)  # Llama a los validadores configurados en settings.py
+        return password
 
     def clean_password_confirmacion(self):
         password = self.cleaned_data.get('password')

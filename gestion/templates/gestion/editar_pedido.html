@@ -3,51 +3,80 @@
 {% block title %}Editar Pedido{% endblock %}
 
 {% block content %}
-<h1>Editar Pedido #{{ pedido.id }}</h1>
-<form method="post">
-    {% csrf_token %}
-    {{ form.as_p }}
+<div class="container mt-4">
+    <h2>Editar Pedido #{{ pedido.id }}</h2>
+    <p>Cliente: {{ pedido.cliente }}</p>
+    <p>Estado: {{ pedido.estado }}</p>
 
-    <h3>Productos en el Pedido</h3>
-    <table>
-        <thead>
-            <tr>
-                <th>Producto</th>
-                <th>Cantidad</th>
-                <th>Eliminar</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for detalle in pedido.detallepedido_set.all %}
-            <tr>
-                <td>{{ detalle.producto.nombre }}</td>
-                <td>
-                    <input type="number" name="cantidad_{{ detalle.id }}" value="{{ detalle.cantidad }}" min="1">
-                </td>
-                <td>
-                    <a href="{% url 'gestion:eliminar_producto' detalle.id %}">Eliminar</a>
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+    <form method="post">
+        {% csrf_token %}
+        {{ formset.management_form }}
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Producto</th>
+                    <th>Cantidad</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for form in formset %}
+                <tr>
+                    <td>{{ form.producto }}</td>
+                    <td>{{ form.cantidad }}</td>
+                    <td>
+                        {{ form.DELETE }} <!-- Campo oculto para eliminaciones -->
+                        <a href="#" class="btn btn-danger btn-sm" 
+                           onclick="eliminarFila(this); return false;">Eliminar</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <button type="submit" class="btn btn-success">Guardar Cambios</button>
+    </form>
 
-    <h3>Agregar nuevos productos</h3>
-    <div>
-        <label for="producto">Selecciona un producto:</label>
-        <select name="producto" id="producto">
-            {% for producto in productos %}
-            <option value="{{ producto.id }}">{{ producto.nombre }}</option>
-            {% endfor %}
-        </select>
-    </div>
+    <!-- Botón para agregar un nuevo producto al pedido -->
+    <button class="btn btn-primary mt-3" onclick="agregarFila(); return false;">Agregar Producto</button>
+</div>
 
-    <div>
-        <label for="cantidad">Cantidad:</label>
-        <input type="number" name="cantidad" id="cantidad" value="1" min="1">
-    </div>
+<script>
+    function eliminarFila(el) {
+        // Marca el formulario para eliminarlo
+        const row = el.closest('tr');
+        const deleteInput = row.querySelector('input[name$="DELETE"]');
+        if (deleteInput) {
+            deleteInput.checked = true; // Marca para eliminar
+            row.style.display = 'none'; // Oculta visualmente la fila
+        }
+    }
 
-    <button type="submit">Guardar cambios</button>
-    <a href="{% url 'gestion:pedidos' %}">Cancelar</a>
-</form>
+    function agregarFila() {
+        // Clona una fila del formset para agregar un nuevo producto
+        const table = document.querySelector('table tbody');
+        const emptyForm = document.querySelector('#id_form-TOTAL_FORMS');
+        const totalForms = parseInt(emptyForm.value, 10);
+
+        // Clonamos la última fila del formulario existente
+        const newRow = table.lastElementChild.cloneNode(true);
+
+        // Actualiza los índices de los campos de formulario
+        newRow.innerHTML = newRow.innerHTML.replace(/form-(\d+|__prefix__)-/g, `form-${totalForms}-`);
+
+        // Limpia los valores de los campos del formulario
+        newRow.querySelectorAll('input, select').forEach(input => {
+            if (input.name.endsWith('DELETE')) {
+                input.checked = false; // Desmarcar el campo DELETE
+            } else {
+                input.value = ''; // Limpiar otros campos
+            }
+        });
+
+        // Agregar la nueva fila a la tabla
+        table.appendChild(newRow);
+
+        // Incrementa el contador de formularios totales
+        emptyForm.value = totalForms + 1;
+    }
+</script>
 {% endblock %}

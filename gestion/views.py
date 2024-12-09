@@ -1,7 +1,9 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.db.models import Sum
+from django.db import transaction
 from django.urls import reverse
 from django.contrib import messages
+from django.forms import modelformset_factory
 from .models import Gasto, Ingreso, Pedido, Producto, PedidoProveedor, DetallePedido
 from .forms import PedidoForm, DetallePedidoFormSet
 
@@ -37,43 +39,70 @@ def pedidos_proveedores(request):
 def crear_pedido(request):
     if request.method == 'POST':
         pedido_form = PedidoForm(request.POST)
-        formset = DetallePedidoFormSet(request.POST)
-        if pedido_form.is_valid() and formset.is_valid():
-            pedido = pedido_form.save()
-            formset.instance = pedido  # Asigna el pedido al formset
-            formset.save()
-            pedido.calcular_precio_total()  # Actualiza el precio total
-            messages.success(request, 'Pedido creado exitosamente.')
-            return redirect('gestion:pedidos')  # Cambia según tu URL
+        if pedido_form.is_valid():
+            # Crear el pedido con los datos iniciales
+            pedido = pedido_form.save(commit=False)
+            pedido.precio_total = 0  # Inicializar con 0 ya que aún no tiene productos
+            pedido.save()
+            messages.success(request, 'Pedido creado exitosamente. Ahora puedes agregar productos.')
+            # Redirigir a la vista de edición para agregar productos
+            return redirect(reverse('gestion:editar_pedido', args=[pedido.id]))
     else:
         pedido_form = PedidoForm()
-        formset = DetallePedidoFormSet()
+    
     return render(request, 'gestion/crear_pedido.html', {
-        'pedido_form': pedido_form,
-        'formset': formset
+        'pedido_form': pedido_form
     })
 
-# Vista para editar un pedido
+# Vista para editar un pedido y agregar productos
 def editar_pedido(request, id):
-    productos = Producto.objects.all().order_by('nombre')
     pedido = get_object_or_404(Pedido, id=id)
+    productos = Producto.objects.all().order_by('nombre')
+
     if request.method == 'POST':
-        pedido_form = PedidoForm(request.POST, instance=pedido)
-        formset = DetallePedidoFormSet(request.POST, instance=pedido)
-        if pedido_form.is_valid() and formset.is_valid():
-            pedido.save()
-            formset.save()
-            pedido.calcular_precio_total()
+        formset = DetallePedidoFormSet(request.POST, queryset=pedido.detallepedido_set.all())
+        
+        if formset.is_valid():
+            # Diagnóstico de los datos validados
+            for form in formset:
+                print(f"Formulario válido: {form.cleaned_data}")
+            
+            # Si el formset es válido, procesamos los formularios
+            with transaction.atomic():
+                for form in formset:
+                    # Ignorar formularios vacíos o no válidos
+                    if not form.cleaned_data:
+                        continue
+
+                    # Eliminar los objetos DetallePedido marcados para eliminación
+                    if form.cleaned_data.get('DELETE', False):
+                        if form.instance.pk:  # Solo eliminar si ya existe
+                            form.instance.delete()  # Eliminar el detalle del pedido
+                        continue  # Continuar con el siguiente formulario
+
+                    # Guardar los formularios válidos con el pedido asociado
+                    detalle = form.save(commit=False)
+                    detalle.pedido = pedido  # Asignar el pedido al detalle
+                    detalle.save()
+
+                # Actualizar el precio total del pedido
+                pedido.calcular_precio_total()
+
+            # Mensaje de éxito
             messages.success(request, 'Pedido actualizado exitosamente.')
             return redirect('gestion:pedidos')
+        
+        else:
+            print("Errores en el formset:")
+            print(formset.errors)  # Diagnóstico de errores en el formset
+
     else:
-        pedido_form = PedidoForm(instance=pedido)
-        formset = DetallePedidoFormSet(instance=pedido)
+        formset = DetallePedidoFormSet(queryset=pedido.detallepedido_set.all())
+
     return render(request, 'gestion/editar_pedido.html', {
-        'pedido_form': pedido_form,
-        'formset': formset,
         'pedido': pedido,
-        'productos': productos
+        'formset': formset,
+        'productos': productos,
     })
 
 # Vista para eliminar un pedido

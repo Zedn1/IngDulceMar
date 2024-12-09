@@ -3,35 +3,19 @@
 {% block title %}Crear Pedido{% endblock %}
 
 {% block content %}
-<h1>Crear Pedido</h1>
-<form method="post">
-    {% csrf_token %}
-    {{ pedido_form.as_p }}
-    <h2>Productos</h2>
-    {{ formset.management_form }}
-    <table>
-        <thead>
-            <tr>
-                <th>Producto</th>
-                <th>Cantidad</th>
-                <th>Eliminar</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for form in formset %}
-                <tr>
-                    <td>{{ form.producto }}</td>
-                    <td>{{ form.cantidad }}</td>
-                    <td>
-                        {% if form.instance.pk %}
-                            <input type="checkbox" name="{{ form.DELETE.name }}">
-                        {% endif %}
-                    </td>
-                </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-    <button type="submit">Guardar</button>
-    <a href="{% url 'gestion:pedidos' %}">Cancelar</a>
-</form>
+<div class="container mt-4">
+    <h2>Crear Pedido</h2>
+    <form method="post">
+        {% csrf_token %}
+        <div class="form-group">
+            {{ pedido_form.cliente.label_tag }}
+            {{ pedido_form.cliente }}
+        </div>
+        <div class="form-group">
+            {{ pedido_form.estado.label_tag }}
+            {{ pedido_form.estado }}
+        </div>
+        <button type="submit" class="btn btn-primary">Crear Pedido</button>
+    </form>
+</div>
 {% endblock %}

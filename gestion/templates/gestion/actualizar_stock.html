@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1>Actualizar Stock de Producto</h1>
+<h3>Producto: {{ producto.nombre }}</h3>
+<p>Stock Actual: {{ producto.cantidad_en_stock }}</p>
+
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit" class="btn btn-warning">Actualizar</button>
+    <a href="{% url 'gestion:lista_productos' %}" class="btn btn-secondary">Cancelar</a>
+</form>
+{% endblock %}

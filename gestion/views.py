@@ -1,11 +1,12 @@
 from django.shortcuts import render, get_object_or_404, redirect
+from django.core.exceptions import ValidationError
 from django.db.models import Sum
 from django.db import transaction
 from django.urls import reverse
 from django.contrib import messages
 from django.forms import modelformset_factory
 from .models import Gasto, Ingreso, Pedido, Producto, PedidoProveedor, DetallePedido
-from .forms import PedidoForm, DetallePedidoFormSet
+from .forms import PedidoForm, DetallePedidoFormSet, ProductoForm, ActualizarStockForm
 
 # Create your views here.
 def ingresos_y_gastos(request):
@@ -120,3 +121,58 @@ def eliminar_producto(request, detalle_id):
     detalle.delete()
     messages.success(request, f"Producto eliminado de pedido #{pedido.id}")
     return redirect('gestion:editar_pedido', id=pedido.id)
+
+def lista_productos(request):
+    productos = Producto.objects.all()
+    return render(request, 'gestion/lista_productos.html', {'productos': productos})
+
+def crear_producto(request):
+    if request.method == 'POST':
+        form = ProductoForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Producto creado exitosamente.')
+            return redirect('gestion:lista_productos')
+    else:
+        form = ProductoForm()
+    return render(request, 'gestion/crear_producto.html', {'form': form})
+
+def editar_producto(request, pk):
+    producto = get_object_or_404(Producto, pk=pk)
+    if request.method == 'POST':
+        form = ProductoForm(request.POST, instance=producto)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Producto actualizado exitosamente.')
+            return redirect('gestion:lista_productos')
+    else:
+        form = ProductoForm(instance=producto)
+    return render(request, 'gestion/editar_producto.html', {'form': form, 'producto': producto})
+
+def eliminar_producto1(request, pk):
+    producto = get_object_or_404(Producto, pk=pk)
+    if request.method == 'POST':
+        try:
+            producto.delete()
+            messages.success(request, 'Producto eliminado exitosamente.')
+        except ValueError as e:
+            messages.error(request, str(e))
+        return redirect('gestion:lista_productos')
+    return render(request, 'gestion/eliminar_producto1.html', {'producto': producto})
+
+def actualizar_stock(request, pk):
+    producto = get_object_or_404(Producto, pk=pk)
+    if request.method == 'POST':
+        form = ActualizarStockForm(request.POST)
+        if form.is_valid():
+            cantidad = form.cleaned_data['cantidad']
+            es_entrada = form.cleaned_data['es_entrada']
+            try:
+                producto.actualizar_stock(cantidad, es_entrada)
+                messages.success(request, 'Stock actualizado exitosamente.')
+            except ValidationError as e:
+                messages.error(request, e.message)
+            return redirect('gestion:lista_productos')
+    else:
+        form = ActualizarStockForm()
+    return render(request, 'gestion/actualizar_stock.html', {'form': form, 'producto': producto})
